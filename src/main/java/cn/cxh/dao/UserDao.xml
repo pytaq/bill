@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--cn.cxh.dao.UserMapper 接口-->
+<mapper namespace="cn.cxh.dao.UserDao">
+
+    <resultMap id="userMap" type="User">
+        <id property="id" column="id"/>
+        <result property="userCode" column="userCode"/>
+        <result property="userName" column="userName"/>
+<!--        一对一关系  内部映射-->
+<!--        <association property="role" javaType="Role">-->
+<!--            <id property="id" column="userRole" />-->
+<!--            <result property="roleCode" column="roleCode"/>-->
+<!--            <result property="roleName" column="roleName"/>-->
+<!--        </association>-->
+<!--        外部映射-->
+        <association property="role" resultMap="roleMap"/>
+
+<!--        内部映射-->
+<!--        <collection property="addresses" ofType="Address" >-->
+<!--            <id property="id" column="aid"/>-->
+<!--            <result property="contact" column="contact"/>-->
+<!--            <result property="addressDesc" column="addressDesc"/>-->
+<!--        </collection>-->
+<!--        外部映射-->
+        <collection property="addresses" ofType="Address" resultMap="addresMap"/>
+
+    </resultMap>
+
+    <resultMap id="roleMap" type="Role">
+        <id property="id" column="userRole" />
+        <result property="roleCode" column="roleCode"/>
+        <result property="roleName" column="roleName"/>
+    </resultMap>
+    <resultMap id="addresMap" type="Address">
+        <id property="id" column="aid"/>
+        <result property="contact" column="contact"/>
+        <result property="addressDesc" column="addressDesc"/>
+    </resultMap>
+
+    <select id="getLoginUser" parameterType="String"  resultMap="userMap">
+        select * from smbms_user where userCode=#{userCode}
+    </select>
+
+    <select id="count" resultType="int">
+        select count(1) from smbms_user
+    </select>
+
+
+    <select id="getUserList" resultMap="userMap" >
+       select u.*,r.roleCode,r.roleName,a.id aid,a.contact,a.addressDesc from smbms_user u
+       left join smbms_role r on u.userRole=r.id
+       left join smbms_address a on u.id = a.userId
+
+       where userName=#{userName} or userRole=#{userRole}
+       limit #{currentPageNo},#{pageSize}
+
+    </select>
+
+    <insert id="add" parameterType="User">
+
+         insert into  smbms_user (userCode,userName,userPassword) values (#{userCode},#{userName},#{userPassword})
+
+    </insert>
+
+    <update id="modify" parameterType="User">
+        update smbms_user set userCode=#{userCode},userName=#{userName},userPassword=#{userPassword}
+        where id=#{id}
+    </update>
+
+<!--    接口方法多个参数 在接口方法传参时使@Param("参数名称") 注解值的类型 指定参数类型-->
+    <update id="updatePwd">
+        update smbms_user set userPassword=#{pwd}
+        where id=#{id}
+    </update>
+
+    <delete id="deleteUserById" parameterType="Integer">
+        delete from smbms_user where id=#{id}
+    </delete>
+
+
+
+
+</mapper>
